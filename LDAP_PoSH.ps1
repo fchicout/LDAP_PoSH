@@ -1,39 +1,61 @@
-﻿$plainLdapConnection = $null;
+﻿#Load the assemblies 
+Add-Type -AssemblyName System.DirectoryServices -ErrorAction Stop
+Add-Type -AssemblyName System.Net -ErrorAction Stop
 
-function New-LdapSession{
+function New-LDAPSession{
+
 param(
-    $Server, 
-    $Login,
-    $Password,
-    $TlsEnabled
+    [String]$Server, 
+    [String]$Login,
+    [uint16]$Port=389,
+    [String]$Password,
+    [boolean]$TLSEnabled=$true,
+    [boolean]$SSLEnabled=$false
     )
+    $c = New-Object System.DirectoryServices.Protocols.LdapConnection("$Server"+ ":" +"$Port")
+    $c.AuthType = [System.DirectoryServices.Protocols.AuthType]::Basic
+    $c.Credential = New-Object "System.Net.NetworkCredential" -ArgumentList $Login,$Password
+    try{
+        $c.Bind()
+        return $c
+    } catch {
+        Write-Error $_.Exception
+    }
+}
+
+function Close-LDAPSession{
+param(
+    [System.DirectoryServices.Protocols.LdapConnection]$Connection
+    )
+    $Connection.Dispose()
 
 }
 
-function Get-LdapSchemas{
+function Get-LDAPSchemas{
+param()
+    $request = New-Object System.DirectoryServices.Protocols.SearchRequest("dc=ufpe,dc=br", "subschemaSubentry", [System.DirectoryServices.SearchScope]::Base, "cn=schema")
+    $cc.SendRequest($request).Entries.Attributes
+}
+
+function List-LDAPSchemas{
 param()
 
 }
 
-function List-LdapSchemas{
+function Set-LDAPSchemas{
 param()
 
 }
 
-function Set-LdapSchemas{
+function Remove-LDAPSchemas{
 param()
 
 }
 
-function Remove-LdapSchemas{
-param()
-
-}
-
-function List-LdapObject{
+function List-LDAPObject{
 param()
 
 }
 
 
-#Export-ModuleMember -Function 'New-LdapSession'
+#Export-ModuleMember -Function 'New-LDAPSession'
